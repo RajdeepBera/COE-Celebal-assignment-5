@@ -1,0 +1,53 @@
+import pandas as pd
+from sqlalchemy import create_engine
+import pyarrow as pa
+import pyarrow.parquet as pq
+from fastavro import writer, parse_schema
+
+# Database connection details
+DB_TYPE = 'postgresql'  # e.g., 'postgresql', 'mysql', 'sqlite'
+DB_DRIVER = 'psycopg2'  # e.g., 'psycopg2', 'mysqldb', 'sqlite'
+DB_USER = 'your_username'
+DB_PASS = 'your_password'
+DB_HOST = 'localhost'
+DB_PORT = '5432'
+DB_NAME = 'your_database'
+
+# Construct the connection URL
+DATABASE_URL = f'{DB_TYPE}+{DB_DRIVER}://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+
+# Create a SQLAlchemy engine
+engine = create_engine(DATABASE_URL)
+
+# SQL query to fetch data
+query = "SELECT * FROM your_table"
+
+# Fetch data into a pandas DataFrame
+df = pd.read_sql(query, engine)
+
+# Save as CSV
+df.to_csv('output.csv', index=False)
+
+# Save as Parquet
+df.to_parquet('output.parquet', index=False)
+
+# Save as Avro
+def df_to_avro(df, file_path):
+    # Define Avro schema
+    schema = {
+        "type": "record",
+        "name": "Data",
+        "fields": [
+            {"name": col, "type": ["null", "string"]} for col in df.columns
+        ]
+    }
+    parsed_schema = parse_schema(schema)
+    
+    # Convert DataFrame to records
+    records = df.to_dict(orient='records')
+    
+    # Write to Avro file
+    with open(file_path, 'wb') as out:
+        writer(out, parsed_schema, records)
+
+df_to_avro(df, 'output.avro')
