@@ -1,0 +1,21 @@
+CREATE TRIGGER ddl_trigger_example
+ON DATABASE
+FOR CREATE_TABLE
+AS
+BEGIN
+    -- Your SQL script to run on event
+    PRINT 'A new table was created!';
+END;
+GO
+---------------------------------------------------------------------------------------------------------------------------+
+CREATE OR REPLACE FUNCTION log_ddl_command()
+RETURNS event_trigger AS $$
+BEGIN
+    -- Your SQL script to run on event
+    RAISE NOTICE 'A DDL command was executed: %', tg_tag;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE EVENT TRIGGER ddl_command_logger
+ON ddl_command_start
+EXECUTE FUNCTION log_ddl_command();
