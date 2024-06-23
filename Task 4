@@ -1,0 +1,13 @@
+-- Connect to the source database
+\c sourcedb
+
+-- Generate the create table script with selective columns
+CREATE TABLE NewTable (
+    Column1 INT,
+    Column2 VARCHAR(50)
+);
+
+-- Insert selective columns data
+INSERT INTO NewTable (Column1, Column2)
+SELECT Column1, Column2
+FROM OriginalTable;
